@@ -15,7 +15,7 @@ router.get('/', (req, res) => {
     })
 });
 
-router.post('/', validateUser, (req, res) => {
+router.post('/', validateUser("name"), (req, res) => {
   Users.insert(req.body)
     .then(user => {
       res.status(201).json(user);
@@ -74,7 +74,7 @@ router.get('/:id/posts', validateUserId, (req, res) => {
   })
 });
 
-router.post('/:id/posts', validatePost, (req, res) => {
+router.post('/:id/posts', validatePost("text"), (req, res) => {
   const postInfo = { ...req.body, user_id: req.params.id };
   Posts.insert(postInfo)
     .then(post => {
@@ -102,32 +102,32 @@ function validateUserId(req, res, next) {
     })
 };
 
-function validateUser(req, res, next) {
-  if(req.body) {
-    if(req.body.name) {
-      next();
+function validateUser(prop) {
+  return function (req, res, next) {
+    if(req.body) {
+      if(req.body[prop]) {
+        next();
+      } else {
+        res.status(400).json({ message: `Missing ${prop}` })
+      }
     } else {
-      res.status(400).json({ message: "missing required name field" });
+      res.status(400).json({ message: "missing user data" });
     }
-  } else {
-    res.status(400).json({ message: "missing user data" });
   }
 };
 
-function validatePost(req, res, next) {
-  Users.getUserPosts(req.params.id)
-    .then(user => {
-      if(user.length < 0) {
-        res.status(400).json({ message: "missing post data" });
-      } else if(user.text === '') {
-        res.status(400).json({ message: "missing required text field" })
-      } else {
+function validatePost(prop) {
+  return function(req, res, next) {
+    if(req.body) {
+      if(req.body[prop]) {
         next();
+      } else {
+        res.status(400).json({ message: `Missing ${prop}` });
       }
-    })
-    .catch(err => {
-      console.log(err);
-    })
+    } else {
+      res.status(400).json({ message: "missing post data" });
+    }
+  }
 };
 
 module.exports = router;

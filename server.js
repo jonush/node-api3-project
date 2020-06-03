@@ -9,7 +9,7 @@ const server = express();
 server.use(express.json());
 server.use(morgan(':method :url :date[web]'));
 server.use('/api/users', userRouter);
-server.use('/api/posts', postRouter);
+server.use('/api/users/:id/posts', postRouter);
 
 server.get('/', (req, res) => {
   res.send(`<h2>Let's write some middleware!</h2>`);
